@@ -1,0 +1,81 @@
+create database bunjang;
+use bunjang;
+ -- user table 
+create table userlist(
+user_ph int unique not null, -- 로그인시 폰 번호
+user_nick varchar(30) primary key not null , -- 유저 닉네임(상점명)
+user_pw varchar(20) not null, -- 패스워드 
+user_email varchar(30) unique not null, -- 이메일
+user_account varchar(20) unique not null, -- 계좌번호
+user_prof varchar(200), -- 상점 소개
+access_token varchar(30) -- 네이버,페이스북,카카오톡 로그인 인증 토큰 ( 수정 가능성 O);
+);
+
+
+drop table adlist;
+drop table itemlist;
+drop table userlist;
+-- 등록된 아이템 테이블 
+create table itemlist(
+user_nick varchar(20), -- 등록한 사람 닉네임 
+item_title varchar(30) unique not null, -- 상품 제목
+item_img1 varchar(50), -- 상품 이미지 1,2,3
+item_img2 varchar(50),
+item_img3 varchar(50),
+item_cat varchar(20) not null, -- 아이템 카테고리 
+item_loc varchar(30), -- 아이템 거래지역 
+item_stat enum ('중고','새상품'), -- 아이템 상태 
+item_ex enum ('교환가능','교환불가'),  -- 교환 가능 여부 
+item_price varchar(10) not null, -- 아이템 가격 
+item_content text(1000), -- 아이템 설명  
+item_tag varchar(100), -- 태그 
+item_count int, -- 아이템 판매 수량 
+
+primary key(user_nick),  
+constraint user_nick_pk foreign key (user_nick) REFERENCES userlist(user_nick) ON DELETE CASCADE ON UPDATE CASCADE -- userlist의 user_nick 을 외래키로 받음 
+);
+  drop table itemlist;
+  
+-- 아이템 관련 부가 기능  
+create table itemlist_add(
+item_title varchar(30) not null, -- 상품 제목
+user_nick varchar(20) not null, -- 등록한 사람 닉네임 
+item_view int default 0, -- 조회수 기본값 0 
+update_date varchar(20), -- 업로드 시간 
+item_cart_cnt int, -- 찜한 사람 수 
+
+constraint user_nick_itemlist foreign key (user_nick) REFERENCES userlist(user_nick) ON DELETE CASCADE ON UPDATE CASCADE, -- 등록한 사람 닉네임은 현재 로그인 사람 되있는 아이디
+constraint user_item_info foreign key (item_title) REFERENCES itemlist(item_title) ON DELETE CASCADE ON UPDATE CASCADE -- 아이템 리스트와 연동해서 값을 가져와야하기 때문에 F.K 값으로 조회
+);
+
+drop table itemlist_add;
+
+create table comment(
+user_nick varchar(20) not null, -- 댓글 단 사람 닉 
+cmt_time varchar(20) not null, -- 댓글 단 시간 
+cmt_cnt int not null, -- 댓글 수 
+content text(200) not null, -- 댓글 내용 
+constraint cmt_nick_cmt foreign key (user_nick) REFERENCES userlist(user_nick) ON DELETE CASCADE ON UPDATE CASCADE -- 닉네임 FK값으로 가져오기 
+);  
+
+drop table comment;
+
+-- 채팅 기록 
+create table chathistory(
+idx int auto_increment primary key,  
+sender_nick varchar(20) unique not null,  -- 보낸사람 닉네임 
+receiver_nick varchar(20) unique not null,  -- 받은사람 닉네임 
+dia_content text(1000) not null, -- 대화 내용 
+chattime varchar(20) not null, -- 채팅시간 
+readstat enum('0','1') default '0', -- 읽음 표시 0 안읽음 1 : 읽음 
+constraint user_nick_chat foreign KEY (sender_nick) REFERENCES userlist(user_nick) -- 보내는 사람 즉 , 나의 닉네임 FK값으로 가져오기 
+);
+
+create table notice ( 
+idx int auto_increment primary key, 
+title varchar(100) not null, -- 공지 제목 
+writetime varchar(20) not null,  -- 공지 올린 시간 
+content text(6000) not null -- 공지 내용 
+);
+
+
